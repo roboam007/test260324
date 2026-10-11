@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Mock Server - 管理界面</title>
+    <!-- Flatpickr 日期选择器 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/flatpickr/4.6.13/l10n/zh.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 0; margin-bottom: 30px; }
+        h1 { text-align: center; font-size: 2rem; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+        .card h2 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .card h3 { margin: 15px 0 10px; color: #555; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-danger { background: #e53e3e; color: white; }
+        .btn-danger:hover { background: #c53030; }
+        .btn-warning { background: #ed8936; color: white; }
+        .btn-warning:hover { background: #dd6b20; }
+        .btn-secondary { background: #718096; color: white; }
+        .btn-secondary:hover { background: #4a5568; }
+        .btn-success { background: #38a169; color: white; }
+        .btn-success:hover { background: #2f855a; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
+        .form-group .required { color: #e53e3e; margin-left: 3px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .form-group textarea { min-height: 100px; font-family: monospace; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #333; font-weight: 600; }
+        tr:hover { background: #f8f9fa; }
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+        .badge-success { background: #c6f6d5; color: #22543d; }
+        .badge-warning { background: #feebc8; color: #7c2d12; }
+        .badge-info { background: #bee3f8; color: #2a4365; }
+        .action-btns { display: flex; gap: 5px; }
+        .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
+        .pagination-controls { display: flex; gap: 8px; align-items: center; }
+        .pagination-info { color: #666; font-size: 14px; }
+        .page-size-select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { color: #333; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+        .close-btn:hover { color: #333; }
+        .response-item { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+        .response-item.active { border-color: #667eea; background: #f0f4ff; }
+        .response-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .response-preview { background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 13px; max-height: 100px; overflow: auto; }
+        .filter-section { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .filter-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
+        .filter-item { flex: 1; }
+        .filter-item .form-group { margin-bottom: 0; }
+        .filter-buttons { display: flex; gap: 8px; }
+        .date-inputs { }
+        .date-inputs input { width: 300px; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .list-header-left { display: flex; align-items: center; gap: 10px; }
+        .list-header h2 { border: none; padding: 0; margin: 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🚀 HTTP Mock Server - 管理界面</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 配置列表 -->
+        <div class="card">
+            <!-- 列表头部：标题+按钮 -->
+            <div class="list-header">
+                <h2>📋 Mock配置列表</h2>
+                <button type="button" class="btn btn-success" onclick="openAddConfigModal()">➕ 新增配置</button>
+            </div>
+            
+            <!-- 筛选区域 -->
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <div class="form-group">
+                            <label>名称</label>
+                            <input type="text" id="filter_name" placeholder="搜索名称">
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <div class="form-group">
+                            <label>方法</label>
+                            <select id="filter_method">
+                                <option value="">全部</option>
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                                <option value="PATCH">PATCH</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <div class="form-group">
+                            <label>URL</label>
+                            <input type="text" id="filter_url" placeholder="搜索URL">
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <div class="form-group">
+                            <label>创建时间</label>
+                            <div class="date-inputs">
+                                <input type="text" id="filter_date_range" placeholder="选择日期范围">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-buttons">
+                    <button type="button" class="btn btn-primary" onclick="applyFilters()">筛选</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFilters()">重置</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearFilters()">清空</button>
+                </div>
+            </div>
+
+            <table id="configTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>方法</th>
+                        <th>URL模式</th>
+                        <th>创建日期</th>
+                        <th>响应数</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="configList"></tbody>
+            </table>
+            <div class="pagination">
+                <div class="pagination-info" id="paginationInfo"></div>
+                <div class="pagination-controls">
+                    <select id="pageSize" class="page-size-select">
+                        <option value="10">10条/页</option>
+                        <option value="20">20条/页</option>
+                        <option value="50">50条/页</option>
+                    </select>
+                    <button class="btn btn-secondary" id="prevBtn" onclick="changePage(-1)">上一页</button>
+                    <span id="pageIndicator"></span>
+                    <button class="btn btn-secondary" id="nextBtn" onclick="changePage(1)">下一页</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 请求日志 -->
+        <div class="card">
+            <h2>📝 请求日志 (最近50条)</h2>
+            <table id="logTable">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>方法</th>
+                        <th>URL</th>
+                        <th>状态码</th>
+                        <th>响应ID</th>
+                    </tr>
+                </thead>
+                <tbody id="logList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 新增配置弹窗 -->
+    <div id="addConfigModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ 添加新的Mock配置</h3>
+                <button class="close-btn" onclick="closeAddConfigModal()">&times;</button>
+            </div>
+            <form id="addForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>配置名称<span class="required">*</span></label>
+                        <input type="text" id="name" required placeholder="例如：获取用户信息">
+                    </div>
+                    <div class="form-group">
+                        <label>HTTP方法<span class="required">*</span></label>
+                        <select id="method" required>
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="PATCH">PATCH</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>URL模式<span class="required">*</span></label>
+                        <input type="text" id="url_pattern" required placeholder="例如：/api/user/123">
+                    </div>
+                    <div class="form-group">
+                        <label>匹配类型</label>
+                        <select id="url_match_type">
+                            <option value="exact">精确匹配</option>
+                            <option value="prefix">前缀匹配</option>
+                            <option value="regex">正则匹配</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <hr style="margin: 20px 0;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>📦 响应列表</h3>
+                    <button type="button" class="btn btn-success" onclick="openAddTempResponseModal()">➕ 添加响应</button>
+                </div>
+                <div id="addConfigResponseList"></div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">保存配置</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddConfigModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 新增配置时的临时添加/编辑响应弹窗 -->
+    <div id="tempResponseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="tempResponseModalTitle">➕ 添加响应</h3>
+                <button class="close-btn" onclick="closeTempResponseModal()">&times;</button>
+            </div>
+            <form id="tempResponseForm">
+                <input type="hidden" id="tempResponseIndex">
+                <div class="form-group">
+                    <label>响应名称<span class="required">*</span></label>
+                    <input type="text" id="tempResponseName" required placeholder="例如：成功响应">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>响应状态码</label>
+                        <input type="number" id="tempResponseStatusCode" value="200">
+                    </div>
+                    <div class="form-group">
+                        <label>响应延迟 (毫秒)</label>
+                        <input type="number" id="tempResponseDelayMs" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>响应头 (JSON格式)</label>
+                    <textarea id="tempResponseHeadersJson" placeholder='{"Content-Type": "application/json"}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>响应体<span class="required">*</span></label>
+                    <textarea id="tempResponseBodyContent" required placeholder='{"message": "success"}'></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeTempResponseModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 配置详情/编辑弹窗 -->
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📝 配置详情</h3>
+                <button class="close-btn" onclick="closeConfigModal()">&times;</button>
+            </div>
+            <form id="configForm">
+                <input type="hidden" id="configId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>配置名称<span class="required">*</span></label>
+                        <input type="text" id="configName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>HTTP方法<span class="required">*</span></label>
+                        <select id="configMethod" required>
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="PATCH">PATCH</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>URL模式<span class="required">*</span></label>
+                        <input type="text" id="configUrlPattern" required>
+                    </div>
+                    <div class="form-group">
+                        <label>匹配类型</label>
+                        <select id="configUrlMatchType">
+                            <option value="exact">精确匹配</option>
+                            <option value="prefix">前缀匹配</option>
+                            <option value="regex">正则匹配</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">保存配置</button>
+            </form>
+
+            <hr style="margin: 20px 0;">
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>📦 响应列表</h3>
+                <button class="btn btn-success" onclick="openAddResponseModal()">➕ 添加响应</button>
+            </div>
+            <div id="responseList"></div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑响应弹窗 -->
+    <div id="responseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="responseModalTitle">➕ 添加响应</h3>
+                <button class="close-btn" onclick="closeResponseModal()">&times;</button>
+            </div>
+            <form id="responseForm">
+                <input type="hidden" id="responseId">
+                <input type="hidden" id="responseConfigId">
+                <div class="form-group">
+                    <label>响应名称<span class="required">*</span></label>
+                    <input type="text" id="responseName" required placeholder="例如：成功响应">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>响应状态码</label>
+                        <input type="number" id="responseStatusCode" value="200">
+                    </div>
+                    <div class="form-group">
+                        <label>响应延迟 (毫秒)</label>
+                        <input type="number" id="responseDelayMs" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>响应头 (JSON格式)</label>
+                    <textarea id="responseHeadersJson" placeholder='{"Content-Type": "application/json"}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>响应体<span class="required">*</span></label>
+                    <textarea id="responseBodyContent" required placeholder='{"message": "success"}'></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeResponseModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/_api';
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalPages = 1;
+        let currentConfigId = null;
+        let filters = { name: '', method: '', url: '', date_start: '', date_end: '' };
+        let tempResponses = []; // 新增配置时的临时响应列表
+        let datePicker = null; // 日期选择器实例
+
+        // 初始化日期选择器
+        function initDatePicker() {
+            datePicker = flatpickr("#filter_date_range", {
+                mode: "range",
+                locale: "zh",
+                dateFormat: "Y-m-d",
+                separator: " ~ ",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        filters.date_start = selectedDates[0].toISOString().split('T')[0];
+                        filters.date_end = selectedDates[1].toISOString().split('T')[0];
+                    } else if (selectedDates.length === 1) {
+                        filters.date_start = selectedDates[0].toISOString().split('T')[0];
+                        filters.date_end = selectedDates[0].toISOString().split('T')[0];
+                    } else {
+                        filters.date_start = '';
+                        filters.date_end = '';
+                    }
+                }
+            });
+        }
+
+        function applyFilters() {
+            filters = {
+                name: document.getElementById('filter_name').value,
+                method: document.getElementById('filter_method').value,
+                url: document.getElementById('filter_url').value,
+                ...filters // 保留日期筛选
+            };
+            currentPage = 1;
+            loadConfigs();
+        }
+
+        function resetFilters() {
+            document.getElementById('filter_name').value = '';
+            document.getElementById('filter_method').value = '';
+            document.getElementById('filter_url').value = '';
+            if (datePicker) {
+                datePicker.clear();
+            }
+            filters = { name: '', method: '', url: '', date_start: '', date_end: '' };
+            currentPage = 1;
+            loadConfigs();
+        }
+
+        function clearFilters() {
+            document.getElementById('filter_name').value = '';
+            document.getElementById('filter_method').value = '';
+            document.getElementById('filter_url').value = '';
+            if (datePicker) {
+                datePicker.clear();
+            }
+            filters = { name: '', method: '', url: '', date_start: '', date_end: '' };
+        }
+
+        async function loadConfigs() {
+            const params = new URLSearchParams({
+                page: currentPage,
+                page_size: pageSize,
+                ...(filters.name && { name: filters.name }),
+                ...(filters.method && { method: filters.method }),
+                ...(filters.url && { url: filters.url }),
+                ...(filters.date_start && { date_start: filters.date_start }),
+                ...(filters.date_end && { date_end: filters.date_end })
+            });
+            const res = await fetch(`${API_BASE}/configs?${params.toString()}`);
+            const data = await res.json();
+            const tbody = document.getElementById('configList');
+            totalPages = data.total_pages;
+            
+            tbody.innerHTML = await Promise.all(data.items.map(async config => {
+                const res = await fetch(`${API_BASE}/configs/${config.id}/responses`);
+                const responses = await res.json();
+                const activeResp = responses.find(r => r.is_active);
+                const createdDate = new Date(config.created_at).toLocaleString('zh-CN', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit', 
+                    hour: '2-digit', minute: '2-digit' 
+                });
+                
+                return `
+                <tr>
+                    <td>${config.id}</td>
+                    <td>${config.name}</td>
+                    <td><span class="badge badge-success">${config.method}</span></td>
+                    <td><code>${config.url_pattern}</code></td>
+                    <td>${createdDate}</td>
+                    <td>
+                        <span class="badge badge-info">${responses.length}</span>
+                        ${activeResp ? `<span class="badge badge-success">✓ ${activeResp.name}</span>` : ''}
+                    </td>
+                    <td class="action-btns">
+                        <button class="btn btn-warning btn-sm" onclick="openConfigModal(${config.id})">管理</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteConfig(${config.id})">删除</button>
+                    </td>
+                </tr>`;
+            }));
+            
+            updatePaginationUI(data);
+        }
+
+        function updatePaginationUI(data) {
+            document.getElementById('paginationInfo').textContent = `共 ${data.total} 条记录`;
+            document.getElementById('pageIndicator').textContent = `${currentPage} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+        }
+
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                loadConfigs();
+            }
+        }
+
+        document.getElementById('pageSize').addEventListener('change', (e) => {
+            pageSize = parseInt(e.target.value);
+            currentPage = 1;
+            loadConfigs();
+        });
+
+        function openAddConfigModal() {
+            document.getElementById('addForm').reset();
+            tempResponses = [
+                {
+                    name: '默认响应',
+                    response_status: 200,
+                    response_headers: '',
+                    response_body: '{"id": 123, "name": "张三"}',
+                    response_delay: 0,
+                    is_active: true
+                }
+            ];
+            renderAddConfigResponses();
+            document.getElementById('addConfigModal').classList.add('show');
+        }
+
+        function closeAddConfigModal() {
+            document.getElementById('addConfigModal').classList.remove('show');
+            tempResponses = [];
+        }
+
+        function renderAddConfigResponses() {
+            const container = document.getElementById('addConfigResponseList');
+            container.innerHTML = tempResponses.map((resp, index) => `
+                <div class="response-item ${resp.is_active ? 'active' : ''}">
+                    <div class="response-header">
+                        <div>
+                            <strong>${resp.name}</strong>
+                            ${resp.is_active ? '<span class="badge badge-success">✓ 已激活</span>' : ''}
+                            <span class="badge badge-info">${resp.response_status}</span>
+                        </div>
+                        <div class="action-btns">
+                            ${!resp.is_active ? `<button class="btn btn-success btn-sm" onclick="setTempResponseActive(${index})">设为激活</button>` : ''}
+                            <button class="btn btn-warning btn-sm" onclick="openEditTempResponseModal(${index})">编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTempResponse(${index})">删除</button>
+                        </div>
+                    </div>
+                    <div class="response-preview">${resp.response_body}</div>
+                </div>
+            `).join('');
+        }
+
+        function setTempResponseActive(index) {
+            tempResponses.forEach((r, i) => {
+                r.is_active = i === index;
+            });
+            renderAddConfigResponses();
+        }
+
+        function openAddTempResponseModal() {
+            document.getElementById('tempResponseModalTitle').textContent = '➕ 添加响应';
+            document.getElementById('tempResponseForm').reset();
+            document.getElementById('tempResponseIndex').value = '';
+            document.getElementById('tempResponseStatusCode').value = 200;
+            document.getElementById('tempResponseDelayMs').value = 0;
+            document.getElementById('tempResponseModal').classList.add('show');
+        }
+
+        function openEditTempResponseModal(index) {
+            const resp = tempResponses[index];
+            document.getElementById('tempResponseModalTitle').textContent = '✏️ 编辑响应';
+            document.getElementById('tempResponseIndex').value = index;
+            document.getElementById('tempResponseName').value = resp.name;
+            document.getElementById('tempResponseStatusCode').value = resp.response_status;
+            document.getElementById('tempResponseDelayMs').value = resp.response_delay;
+            document.getElementById('tempResponseHeadersJson').value = resp.response_headers || '';
+            document.getElementById('tempResponseBodyContent').value = resp.response_body;
+            document.getElementById('tempResponseModal').classList.add('show');
+        }
+
+        function closeTempResponseModal() {
+            document.getElementById('tempResponseModal').classList.remove('show');
+        }
+
+        function saveTempResponse(e) {
+            e.preventDefault();
+            const indexStr = document.getElementById('tempResponseIndex').value;
+            const newResp = {
+                name: document.getElementById('tempResponseName').value,
+                response_status: parseInt(document.getElementById('tempResponseStatusCode').value),
+                response_headers: document.getElementById('tempResponseHeadersJson').value,
+                response_body: document.getElementById('tempResponseBodyContent').value,
+                response_delay: parseInt(document.getElementById('tempResponseDelayMs').value),
+                is_active: false
+            };
+
+            if (indexStr !== '') {
+                const index = parseInt(indexStr);
+                newResp.is_active = tempResponses[index].is_active;
+                tempResponses[index] = newResp;
+            } else {
+                if (tempResponses.length === 0) {
+                    newResp.is_active = true;
+                }
+                tempResponses.push(newResp);
+            }
+
+            renderAddConfigResponses();
+            closeTempResponseModal();
+        }
+
+        function deleteTempResponse(index) {
+            if (!confirm('确定要删除这个响应吗？')) return;
+            const wasActive = tempResponses[index].is_active;
+            tempResponses.splice(index, 1);
+            if (wasActive && tempResponses.length > 0) {
+                tempResponses[0].is_active = true;
+            }
+            renderAddConfigResponses();
+        }
+
+        async function addConfig(e) {
+            e.preventDefault();
+            
+            if (tempResponses.length === 0) {
+                alert('请至少添加一个响应！');
+                return;
+            }
+
+            const config = {
+                name: document.getElementById('name').value,
+                method: document.getElementById('method').value,
+                url_pattern: document.getElementById('url_pattern').value,
+                url_match_type: document.getElementById('url_match_type').value
+            };
+
+            // 1. 先创建配置
+            const configRes = await fetch(`${API_BASE}/configs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            const newConfig = await configRes.json();
+
+            // 2. 批量添加响应
+            for (const resp of tempResponses) {
+                const respData = {
+                    config_id: newConfig.id,
+                    name: resp.name,
+                    response_status: resp.response_status,
+                    response_headers: resp.response_headers,
+                    response_body: resp.response_body,
+                    response_delay: resp.response_delay
+                };
+
+                const respRes = await fetch(`${API_BASE}/configs/${newConfig.id}/responses`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(respData)
+                });
+                const newResp = await respRes.json();
+
+                // 如果是激活状态，设置激活
+                if (resp.is_active) {
+                    await fetch(`${API_BASE}/responses/${newResp.id}/active`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_active: true })
+                    });
+                }
+            }
+
+            e.target.reset();
+            closeAddConfigModal();
+            currentPage = 1;
+            loadConfigs();
+            alert('配置添加成功！');
+        }
+
+        async function deleteConfig(id) {
+            if (!confirm('确定要删除这个配置吗？')) return;
+            await fetch(`${API_BASE}/configs/${id}`, { method: 'DELETE' });
+            loadConfigs();
+        }
+
+        async function openConfigModal(configId) {
+            currentConfigId = configId;
+            const res = await fetch(`${API_BASE}/configs/${configId}`);
+            const config = await res.json();
+            
+            document.getElementById('configId').value = config.id;
+            document.getElementById('configName').value = config.name;
+            document.getElementById('configMethod').value = config.method;
+            document.getElementById('configUrlPattern').value = config.url_pattern;
+            document.getElementById('configUrlMatchType').value = config.url_match_type;
+            
+            document.getElementById('configModal').classList.add('show');
+            loadResponses(configId);
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.remove('show');
+            currentConfigId = null;
+        }
+
+        async function saveConfig(e) {
+            e.preventDefault();
+            const configId = document.getElementById('configId').value;
+            const config = {
+                name: document.getElementById('configName').value,
+                method: document.getElementById('configMethod').value,
+                url_pattern: document.getElementById('configUrlPattern').value,
+                url_match_type: document.getElementById('configUrlMatchType').value
+            };
+            await fetch(`${API_BASE}/configs/${configId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            loadConfigs();
+            alert('配置保存成功！');
+        }
+
+        async function loadResponses(configId) {
+            const res = await fetch(`${API_BASE}/configs/${configId}/responses`);
+            const responses = await res.json();
+            const container = document.getElementById('responseList');
+            
+            container.innerHTML = responses.map(resp => `
+                <div class="response-item ${resp.is_active ? 'active' : ''}">
+                    <div class="response-header">
+                        <div>
+                            <strong>${resp.name}</strong>
+                            ${resp.is_active ? '<span class="badge badge-success">✓ 已激活</span>' : ''}
+                            <span class="badge badge-info">${resp.response_status}</span>
+                        </div>
+                        <div class="action-btns">
+                            ${!resp.is_active ? `<button class="btn btn-success btn-sm" onclick="setResponseActive(${resp.id}, true)">设为激活</button>` : ''}
+                            <button class="btn btn-warning btn-sm" onclick="openEditResponseModal(${resp.id})">编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteResponse(${resp.id})">删除</button>
+                        </div>
+                    </div>
+                    <div class="response-preview">${resp.response_body}</div>
+                </div>
+            `).join('');
+        }
+
+        async function setResponseActive(responseId, isActive) {
+            await fetch(`${API_BASE}/responses/${responseId}/active`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_active: isActive })
+            });
+            loadResponses(currentConfigId);
+            loadConfigs();
+        }
+
+        function openAddResponseModal() {
+            document.getElementById('responseModalTitle').textContent = '➕ 添加响应';
+            document.getElementById('responseForm').reset();
+            document.getElementById('responseId').value = '';
+            document.getElementById('responseConfigId').value = currentConfigId;
+            document.getElementById('responseModal').classList.add('show');
+        }
+
+        async function openEditResponseModal(responseId) {
+            const res = await fetch(`${API_BASE}/configs/${currentConfigId}/responses`);
+            const responses = await res.json();
+            const resp = responses.find(r => r.id === responseId);
+            
+            document.getElementById('responseModalTitle').textContent = '✏️ 编辑响应';
+            document.getElementById('responseId').value = resp.id;
+            document.getElementById('responseConfigId').value = currentConfigId;
+            document.getElementById('responseName').value = resp.name;
+            document.getElementById('responseStatusCode').value = resp.response_status;
+            document.getElementById('responseDelayMs').value = resp.response_delay;
+            document.getElementById('responseHeadersJson').value = resp.response_headers || '';
+            document.getElementById('responseBodyContent').value = resp.response_body;
+            
+            document.getElementById('responseModal').classList.add('show');
+        }
+
+        function closeResponseModal() {
+            document.getElementById('responseModal').classList.remove('show');
+        }
+
+        async function saveResponse(e) {
+            e.preventDefault();
+            const respId = document.getElementById('responseId').value;
+            const configId = document.getElementById('responseConfigId').value;
+            const data = {
+                config_id: configId,
+                name: document.getElementById('responseName').value,
+                response_status: parseInt(document.getElementById('responseStatusCode').value),
+                response_delay: parseInt(document.getElementById('responseDelayMs').value),
+                response_headers: document.getElementById('responseHeadersJson').value,
+                response_body: document.getElementById('responseBodyContent').value
+            };
+            
+            if (respId) {
+                await fetch(`${API_BASE}/responses/${respId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                const res = await fetch(`${API_BASE}/configs/${configId}/responses`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const newResp = await res.json();
+                const respRes = await fetch(`${API_BASE}/configs/${configId}/responses`);
+                const responses = await respRes.json();
+                if (responses.length === 1) {
+                    await setResponseActive(newResp.id, true);
+                }
+            }
+            
+            closeResponseModal();
+            loadResponses(configId);
+            loadConfigs();
+            alert('响应保存成功！');
+        }
+
+        async function deleteResponse(responseId) {
+            if (!confirm('确定要删除这个响应吗？')) return;
+            await fetch(`${API_BASE}/responses/${responseId}`, { method: 'DELETE' });
+            loadResponses(currentConfigId);
+            loadConfigs();
+        }
+
+        async function loadLogs() {
+            const res = await fetch(`${API_BASE}/logs`);
+            const logs = await res.json();
+            const tbody = document.getElementById('logList');
+            tbody.innerHTML = logs.map(l => `
+                <tr>
+                    <td>${new Date(l.created_at).toLocaleString()}</td>
+                    <td><span class="badge badge-success">${l.request_method}</span></td>
+                    <td><code style="word-break: break-all;">${l.request_url}</code></td>
+                    <td>${l.response_status}</td>
+                    <td>${l.matched_response_id || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('addForm').addEventListener('submit', addConfig);
+        document.getElementById('configForm').addEventListener('submit', saveConfig);
+        document.getElementById('responseForm').addEventListener('submit', saveResponse);
+        document.getElementById('tempResponseForm').addEventListener('submit', saveTempResponse);
+
+        loadConfigs();
+        loadLogs();
+        setInterval(loadLogs, 5000);
+        initDatePicker(); // 初始化日期选择器
+    </script>
+</body>
+</html>
