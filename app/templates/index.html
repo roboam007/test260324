@@ -71,6 +71,47 @@
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .list-header-left { display: flex; align-items: center; gap: 10px; }
         .list-header h2 { border: none; padding: 0; margin: 0; }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translate(-50%, -120%);
+            background: #38a169;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 2000;
+            transition: transform 0.3s ease;
+        }
+        .toast.show {
+            transform: translate(-50%, 0);
+        }
+        .toast.error {
+            background: #e53e3e;
+        }
+        .toast.warning {
+            background: #ed8936;
+        }
+
+        /* 确认弹窗 */
+        .confirm-modal-content {
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+        }
+        .confirm-modal-content p {
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -366,6 +407,24 @@
         </div>
     </div>
 
+    <!-- Toast 提示 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- 确认弹窗 -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content confirm-modal-content">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">⚠️ 确认操作</h3>
+                <button class="close-btn" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <p id="confirmModalMessage">确定要执行此操作吗？</p>
+            <div class="confirm-buttons">
+                <button type="button" class="btn btn-primary" id="confirmYesBtn">确定</button>
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '/_api';
         let currentPage = 1;
@@ -375,6 +434,39 @@
         let filters = { name: '', method: '', url: '', date_start: '', date_end: '' };
         let tempResponses = []; // 新增配置时的临时响应列表
         let datePicker = null; // 日期选择器实例
+        let confirmCallback = null; // 确认弹窗回调函数
+
+        // Toast 提示
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 确认弹窗
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirmYesBtn').addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            closeConfirmModal();
+        });
 
         // 初始化日期选择器
         function initDatePicker() {
@@ -599,20 +691,21 @@
         }
 
         function deleteTempResponse(index) {
-            if (!confirm('确定要删除这个响应吗？')) return;
-            const wasActive = tempResponses[index].is_active;
-            tempResponses.splice(index, 1);
-            if (wasActive && tempResponses.length > 0) {
-                tempResponses[0].is_active = true;
-            }
-            renderAddConfigResponses();
+            showConfirm('⚠️ 删除响应', '确定要删除这个响应吗？', () => {
+                const wasActive = tempResponses[index].is_active;
+                tempResponses.splice(index, 1);
+                if (wasActive && tempResponses.length > 0) {
+                    tempResponses[0].is_active = true;
+                }
+                renderAddConfigResponses();
+            });
         }
 
         async function addConfig(e) {
             e.preventDefault();
             
             if (tempResponses.length === 0) {
-                alert('请至少添加一个响应！');
+                showToast('请至少添加一个响应！', 'warning');
                 return;
             }
 
@@ -663,13 +756,15 @@
             closeAddConfigModal();
             currentPage = 1;
             loadConfigs();
-            alert('配置添加成功！');
+            showToast('配置添加成功！');
         }
 
         async function deleteConfig(id) {
-            if (!confirm('确定要删除这个配置吗？')) return;
-            await fetch(`${API_BASE}/configs/${id}`, { method: 'DELETE' });
-            loadConfigs();
+            showConfirm('⚠️ 删除配置', '确定要删除这个配置吗？', async () => {
+                await fetch(`${API_BASE}/configs/${id}`, { method: 'DELETE' });
+                loadConfigs();
+                showToast('配置删除成功！');
+            });
         }
 
         async function openConfigModal(configId) {
@@ -707,7 +802,7 @@
                 body: JSON.stringify(config)
             });
             loadConfigs();
-            alert('配置保存成功！');
+            showToast('配置保存成功！');
         }
 
         async function loadResponses(configId) {
@@ -809,14 +904,16 @@
             closeResponseModal();
             loadResponses(configId);
             loadConfigs();
-            alert('响应保存成功！');
+            showToast('响应保存成功！');
         }
 
         async function deleteResponse(responseId) {
-            if (!confirm('确定要删除这个响应吗？')) return;
-            await fetch(`${API_BASE}/responses/${responseId}`, { method: 'DELETE' });
-            loadResponses(currentConfigId);
-            loadConfigs();
+            showConfirm('⚠️ 删除响应', '确定要删除这个响应吗？', async () => {
+                await fetch(`${API_BASE}/responses/${responseId}`, { method: 'DELETE' });
+                loadResponses(currentConfigId);
+                loadConfigs();
+                showToast('响应删除成功！');
+            });
         }
 
         async function loadLogs() {
