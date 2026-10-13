@@ -514,7 +514,7 @@
                         <table id="configTable">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>序号</th>
                                     <th>名称</th>
                                     <th>方法</th>
                                     <th>URL模式</th>
@@ -561,6 +561,7 @@
                             <div class="filter-buttons">
                                 <button class="btn btn-secondary" onclick="resetLogFilters()">重置</button>
                                 <button class="btn btn-primary" onclick="applyLogFilters()">筛选</button>
+                                <button class="btn btn-danger" onclick="clearAllLogs()">清空日志</button>
                             </div>
                         </div>
                     </div>
@@ -570,9 +571,9 @@
                         <table id="logTable">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>序号</th>
                                     <th>方法</th>
-                                    <th>URL</th>
+                                    <th>请求URL</th>
                                     <th>Mock URL</th>
                                     <th>状态码</th>
                                     <th>时间</th>
@@ -814,6 +815,21 @@
         </div>
     </div>
     
+    <!-- 确认弹窗 -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content" style="max-width: 380px;">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">确认</h3>
+                <button class="close-btn" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div style="padding: 10px 0; font-size: 14px; color: #555;" id="confirmModalMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+                <button type="button" class="btn btn-danger" onclick="confirmModalOk()">确定</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Toast提示 -->
     <div class="toast" id="toast"></div>
     
@@ -871,6 +887,7 @@
         let configPageSize = 10;
         let logPage = 1;
         let logPageSize = 10;
+        let confirmCallback = null;
         
         let filters = {
             name: '',
@@ -1228,12 +1245,13 @@
                 return;
             }
             
-            tbody.innerHTML = configs.map(config => {
+            tbody.innerHTML = configs.map((config, index) => {
                 // 处理响应数量
                 const responseCount = (config.responses || []).length;
+                const seq = (configPage - 1) * configPageSize + index + 1;
                 return `
                 <tr>
-                    <td>${config.id}</td>
+                    <td>${seq}</td>
                     <td>${config.name}</td>
                     <td><span class="badge badge-primary">${config.method}</span></td>
                     <td><code>${config.url_pattern}</code></td>
@@ -1503,16 +1521,37 @@
             }
         }
         
-        async function deleteConfig(configId) {
-            if (!confirm('确定要删除这个配置吗？')) return;
-            try {
-                await fetch(`/_api/configs/${configId}`, { method: 'DELETE' });
-                loadConfigs();
-                showToast('删除成功');
-            } catch (e) {
-                console.error(e);
-                showToast('删除失败');
+        // ==================== 通用确认弹窗 ====================
+        function showConfirmModal(title, message, callback) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+        
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            confirmCallback = null;
+        }
+        
+        function confirmModalOk() {
+            if (confirmCallback) {
+                confirmCallback();
             }
+            closeConfirmModal();
+        }
+        
+        async function deleteConfig(configId) {
+            showConfirmModal('删除配置', '确定要删除这个配置吗？', async () => {
+                try {
+                    await fetch(`/_api/configs/${configId}`, { method: 'DELETE' });
+                    loadConfigs();
+                    showToast('删除成功');
+                } catch (e) {
+                    console.error(e);
+                    showToast('删除失败');
+                }
+            });
         }
         
         // ==================== 目录管理 ====================
@@ -1587,15 +1626,16 @@
         }
         
         async function deleteGroup(groupId) {
-            if (!confirm('确定要删除此目录吗？此目录下的配置会移到根目录')) return;
-            try {
-                await fetch(`/_api/groups/${groupId}`, { method: 'DELETE' });
-                await loadGroups(); // 重新加载
-                showToast('删除成功');
-            } catch (e) {
-                console.error(e);
-                showToast('删除失败');
-            }
+            showConfirmModal('删除目录', '确定要删除此目录吗？此目录下的配置会移到根目录', async () => {
+                try {
+                    await fetch(`/_api/groups/${groupId}`, { method: 'DELETE' });
+                    await loadGroups(); // 重新加载
+                    showToast('删除成功');
+                } catch (e) {
+                    console.error(e);
+                    showToast('删除失败');
+                }
+            });
         }
         
         // ==================== 响应管理 ====================
@@ -1738,6 +1778,20 @@
             }
         }
         
+        function clearAllLogs() {
+            showConfirmModal('清空日志', '确定要清空所有请求日志吗？', async () => {
+                try {
+                    await fetch('/_api/logs', { method: 'DELETE' });
+                    logPage = 1;
+                    loadLogs();
+                    showToast('清空成功');
+                } catch (e) {
+                    console.error(e);
+                    showToast('清空失败');
+                }
+            });
+        }
+        
         function renderLogList(logs) {
             const tbody = document.getElementById('logList');
             if (!logs || logs.length === 0) {
@@ -1745,9 +1799,9 @@
                 return;
             }
             
-            tbody.innerHTML = logs.map(log => `
+            tbody.innerHTML = logs.map((log, index) => `
                 <tr>
-                    <td>${log.id}</td>
+                    <td>${(logPage - 1) * logPageSize + index + 1}</td>
                     <td><span class="badge badge-primary">${log.request_method}</span></td>
                     <td><code>${log.request_url}</code></td>
                     <td>${log.matched_config_url || '-'}</td>

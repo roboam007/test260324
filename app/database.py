@@ -410,6 +410,13 @@ def add_request_log(log):
     conn.close()
     return log_id
 
+def clear_logs():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM request_log')
+    conn.commit()
+    conn.close()
+
 def get_recent_logs(limit=50):
     conn = get_db()
     cursor = conn.cursor()
@@ -468,14 +475,20 @@ def add_mock_group(group):
     conn = get_db()
     cursor = conn.cursor()
     now = datetime.now().isoformat()
+    parent_id = group.get('parent_id', 0)
+    sort_order = group.get('sort_order')
+    if sort_order is None:
+        # 新增目录默认排在同级目录最后
+        cursor.execute('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM mock_group WHERE parent_id = ?', (parent_id,))
+        sort_order = cursor.fetchone()[0]
     cursor.execute('''
         INSERT INTO mock_group 
         (name, parent_id, sort_order, icon, color, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (
         group.get('name'),
-        group.get('parent_id', 0),
-        group.get('sort_order', 0),
+        parent_id,
+        sort_order,
         group.get('icon', '📁'),
         group.get('color', '#667eea'),
         now, now

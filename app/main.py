@@ -11,7 +11,7 @@ from app.database import (
     update_mock_config, delete_mock_config, get_mock_configs_paginated,
     add_mock_response, get_responses_by_config_id, get_active_response_by_config_id,
     update_mock_response, delete_mock_response, set_response_active,
-    add_request_log, get_recent_logs, get_logs_paginated,
+    add_request_log, get_recent_logs, get_logs_paginated, clear_logs,
     get_group_tree, add_mock_group, get_all_groups,
     update_mock_group, delete_mock_group, get_configs_by_group,
     init_default_groups
@@ -250,6 +250,11 @@ def list_logs():
     limit = request.args.get('limit', 50, type=int)
     logs = get_recent_logs(limit)
     return jsonify(logs)
+
+@app.route('/_api/logs', methods=['DELETE'])
+def clear_logs_endpoint():
+    clear_logs()
+    return jsonify({'status': 'ok'})
 
 # ==================== 目录树API ====================
 @app.route('/_api/groups', methods=['GET'])
