@@ -121,6 +121,21 @@ def migrate_old_data():
             
             print(f"迁移了 {len(old_configs)} 条配置")
             
+        # 3. 检查 request_log 表是否缺少 matched_config_* 列
+        cursor.execute("PRAGMA table_info(request_log)")
+        log_columns = [col[1] for col in cursor.fetchall()]
+        log_new_columns = {
+            'matched_config_id': 'INTEGER',
+            'matched_response_id': 'INTEGER',
+            'matched_config_url': 'TEXT'
+        }
+        for col_name, col_type in log_new_columns.items():
+            if col_name not in log_columns:
+                print(f"添加 {col_name} 列到 request_log...")
+                cursor.execute(f"ALTER TABLE request_log ADD COLUMN {col_name} {col_type}")
+        conn.commit()
+        print("✅ request_log 表列检查完成")
+            
     except Exception as e:
         print(f"迁移出错: {e}")
         import traceback

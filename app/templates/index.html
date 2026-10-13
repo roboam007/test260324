@@ -7,65 +7,83 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
         
         /* 主布局 */
         .app-container { display: flex; height: 100vh; overflow: hidden; }
         
-        /* 左侧侧边栏 */
+        /* 左侧侧边栏 - 简洁版 */
         .sidebar {
-            width: 280px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            width: 200px;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
             display: flex;
             flex-direction: column;
-            transition: all 0.3s;
         }
         .sidebar-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #333;
             color: white;
-            padding: 20px;
-            text-align: center;
+            padding: 10px 15px;
+            text-align: left;
         }
-        .sidebar-header h2 { font-size: 1.4rem; margin-bottom: 5px; }
-        .sidebar-header p { font-size: 0.85rem; opacity: 0.9; }
+        .sidebar-header h2 { font-size: 1rem; margin-bottom: 3px; }
+        .sidebar-header p { font-size: 0.75rem; opacity: 0.8; }
         
-        /* 目录树 */
-        .tree-container { flex: 1; overflow-y: auto; padding: 15px; }
+        /* 目录树 - 极简风格 */
+        .tree-container { flex: 1; overflow-y: auto; padding: 8px 5px; }
         .tree-item {
             cursor: pointer;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            transition: all 0.3s;
+            padding: 3px 6px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px;
+            font-size: 13px;
+            color: #333;
+            line-height: 1.4;
+            position: relative;
         }
-        .tree-item:hover { background: #f0f4ff; transform: translateX(5px); }
-        .tree-item.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
-        }
-        .tree-item .icon { font-size: 1.2rem; }
-        .tree-item .name { flex: 1; font-weight: 500; }
-        .tree-children { margin-left: 20px; display: none; }
+        .tree-item:hover { color: #409eff; }
+        .tree-item.active { color: #409eff; font-weight: 500; }
+        .tree-item .name { flex: 1; }
+        .tree-children { margin-left: 10px; display: none; }
         .tree-children.show { display: block; }
         .tree-expand {
-            width: 20px;
+            width: 12px;
             text-align: center;
-            transition: transform 0.3s;
+            font-size: 9px;
+            color: #999;
         }
         .tree-expand.expanded { transform: rotate(90deg); }
-        .tree-actions {
-            display: flex;
-            gap: 5px;
-            opacity: 0;
-            transition: opacity 0.3s;
+        .tree-menu {
+            color: #999;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
         }
-        .tree-item:hover .tree-actions { opacity: 1; }
+        .tree-menu:hover { color: #409eff; }
+        
+        /* 三点菜单 */
+        .tree-menu-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            width: 100px;
+            display: none;
+        }
+        .tree-menu-dropdown.show { display: block; }
+        .tree-menu-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #333;
+            text-align: center;
+        }
+        .tree-menu-item:hover { background: #f5f7fa; color: #409eff; }
         
         /* 右侧内容区 */
         .main-content {
@@ -74,97 +92,154 @@
             padding: 25px;
         }
         
-        /* Tab导航 */
+        /* Tab导航 - 简洁版 */
         .tab-nav {
             display: flex;
-            background: rgba(255,255,255,0.95);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 5px;
-            margin-bottom: 20px;
+            background: white;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 15px;
         }
         .tab-btn {
             flex: 1;
-            padding: 15px 20px;
+            padding: 12px 20px;
             border: none;
             background: transparent;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 14px;
             color: #666;
-            transition: all 0.3s;
-            border-radius: 8px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
-        .tab-btn:hover { background: #f0f4ff; color: #667eea; transform: translateY(-2px); }
+        .tab-btn:hover { color: #409eff; }
         .tab-btn.active {
-            color: white;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
-            transform: translateY(-2px);
+            color: #409eff;
+            border-bottom-color: #409eff;
         }
         
-        /* 卡片样式 */
+        /* 卡片样式 - 简洁版 */
         .card {
-            background: rgba(255,255,255,0.95);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 25px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
+            background: white;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 15px;
         }
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            min-height: 32px;
         }
-        .card-header h2 { color: #333; font-size: 1.4rem; }
+        .card-header h2 { color: #333; font-size: 1.1rem; margin: 0; line-height: 32px; }
+        .card-header .btn { height: 32px; line-height: 32px; padding: 0 16px; }
         
-        /* 按钮样式 */
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s; font-weight: 500; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102,126,234,0.5); }
-        .btn-danger { background: linear-gradient(135deg, #f5576c 0%, #e53e3e 100%); color: white; box-shadow: 0 4px 12px rgba(245,87,108,0.4); }
-        .btn-danger:hover { transform: translateY(-2px); }
-        .btn-success { background: linear-gradient(135deg, #38a169 0%, #2f855a 100%); color: white; box-shadow: 0 4px 12px rgba(56,161,105,0.4); }
-        .btn-success:hover { transform: translateY(-2px); }
-        .btn-secondary { background: #718096; color: white; }
-        .btn-secondary:hover { background: #4a5568; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        /* 按钮样式 - 简洁版 */
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-primary { background: #409eff; color: white; }
+        .btn-primary:hover { background: #66b1ff; }
+        .btn-danger { background: #f56c6c; color: white; }
+        .btn-danger:hover { background: #f78989; }
+        .btn-success { background: #67c23a; color: white; }
+        .btn-success:hover { background: #85ce61; }
+        .btn-secondary { background: #909399; color: white; }
+        .btn-secondary:hover { background: #a6a9ad; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
         
-        /* 表单样式 */
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
-        .form-group .required { color: #e53e3e; margin-left: 3px; }
+        /* 表单样式 - 简洁版 */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 4px; color: #666; font-size: 13px; }
+        .form-group .required { color: #f56c6c; margin-left: 3px; }
         .form-group input, .form-group select, .form-group textarea { 
             width: 100%; 
-            padding: 10px 12px; 
-            border: 2px solid #e0e0e0; 
-            border-radius: 8px; 
-            font-size: 14px;
-            transition: all 0.3s;
+            padding: 8px 10px; 
+            border: 1px solid #dcdfe6; 
+            border-radius: 4px; 
+            font-size: 13px;
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+            border-color: #409eff;
         }
         .form-group textarea { min-height: 100px; font-family: monospace; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
         
+        /* 目录下拉组件 */
+        .group-select { position: relative; }
+        .group-select-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            background: white;
+            box-sizing: border-box;
+        }
+        .group-select-display:hover { border-color: #409eff; }
+        .group-select-arrow { color: #999; font-size: 12px; }
+        .group-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 240px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            z-index: 100;
+            display: none;
+            box-sizing: border-box;
+        }
+        .group-select-dropdown.show { display: block; }
+        .group-opt-row {
+            display: flex;
+            align-items: center;
+            height: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            padding-right: 8px;
+        }
+        .group-opt-row:hover { background: #f5f7fa; }
+        .group-opt-row.selected { background: #ecf5ff; color: #409eff; }
+        .group-opt-toggle {
+            width: 18px;
+            text-align: center;
+            color: #999;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .group-opt-toggle.invisible { visibility: hidden; }
+        .group-opt-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
         /* 筛选区域 */
         .filter-section { margin-bottom: 20px; }
         .filter-row { display: flex; gap: 10px; flex-wrap: nowrap; align-items: flex-end; }
-        .filter-item { flex: 1; min-width: 120px; max-width: 250px; position: relative; }
-        .filter-btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
+        .filter-item { flex: 1; min-width: 120px; max-width: 250px; position: relative; display: flex; align-items: center; gap: 6px; }
+        .filter-item label { white-space: nowrap; flex-shrink: 0; }
+        .filter-item input, .filter-item select, .filter-item .date-range-input { flex: 1; min-width: 0; }
+        .filter-item .date-range-input { width: auto; }
+        .filter-item input, .filter-item select {
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+        .filter-item input { padding-right: 28px; }
+        .filter-buttons { display: flex; gap: 10px; align-items: center; }
         .filter-clear-btn {
             position: absolute;
             right: 8px;
@@ -179,83 +254,76 @@
         }
         .filter-clear-btn.show { display: block; }
         
-        /* 表格 */
-        .table-container { max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid #eee; }
+        /* 表格 - 极简风格 */
+        .table-container { max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #eee; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e0e0e0; font-size: 13px; }
         th {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: #f5f7fa;
             color: #333;
-            font-weight: 600;
+            font-weight: 500;
             position: sticky;
             top: 0;
         }
-        tr:hover { background: #f8f9fa; }
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-        .badge-success { background: #c6f6d5; color: #22543d; }
-        .badge-warning { background: #feebc8; color: #7c2d12; }
-        .badge-info { background: #bee3f8; color: #2a4365; }
-        .badge-primary { background: #e0e7ff; color: #667eea; }
-        .action-btns { display: flex; gap: 8px; }
+        tr:hover { background: #fafafa; }
+        .badge { padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .badge-success { background: #f0f9eb; color: #67c23a; }
+        .badge-warning { background: #fdf6ec; color: #e6a23c; }
+        .badge-info { background: #ecf5ff; color: #409eff; }
+        .badge-primary { background: #ecf5ff; color: #409eff; }
+        .action-btns { display: flex; gap: 5px; }
         
-        /* 分页 */
-        .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee; }
-        .pagination-controls { display: flex; gap: 10px; align-items: center; }
-        .pagination-info { color: #666; font-size: 14px; }
-        .page-size-select { padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        /* 分页 - 极简风格 */
+        .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; }
+        .pagination-controls { display: flex; gap: 8px; align-items: center; }
+        .pagination-info { color: #666; font-size: 13px; }
+        .page-size-select { padding: 4px 8px; border: 1px solid #dcdfe6; border-radius: 3px; font-size: 13px; }
         
-        /* 模态框 */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-        .modal.show { display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* 模态框 - 极简风格 */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
         .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 16px;
+            padding: 20px;
             width: 90%;
             max-width: 700px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s;
+            border: 1px solid #e0e0e0;
         }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
         }
-        .modal-header h3 { color: #333; font-size: 1.5rem; }
+        .modal-header h3 { color: #333; font-size: 16px; }
         .close-btn {
             background: none;
             border: none;
-            font-size: 28px;
+            font-size: 20px;
             cursor: pointer;
             color: #999;
-            transition: color 0.3s;
         }
         .close-btn:hover { color: #333; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 20px; border-top: 2px solid #f0f0f0; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; padding-top: 10px; border-top: 1px solid #e0e0e0; }
         
-        /* Toast */
+        /* Toast - 极简风格 */
         .toast {
             position: fixed;
-            top: 30px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #409eff;
             color: white;
-            padding: 15px 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(102,126,234,0.5);
+            padding: 10px 20px;
+            border-radius: 4px;
             z-index: 3000;
             display: none;
-            animation: toastIn 0.3s;
+            font-size: 13px;
         }
-        @keyframes toastIn { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
         .toast.show { display: block; }
         
         /* Tab内容 */
@@ -263,34 +331,111 @@
         .tab-content.active { display: block; }
         
         /* 日期选择器 */
-        .date-range-container { display: flex; align-items: center; gap: 8px; }
-        .date-range-container input { flex: 1; min-width: 0; }
-        .date-separator { color: #6c757d; font-weight: bold; white-space: nowrap; }
+        .date-range-input {
+            width: 100%;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            background: white;
+            box-sizing: border-box;
+        }
+        .date-range-input:hover { border-color: #409eff; }
         
-        /* 响应列表 */
-        .response-list { margin-top: 15px; }
-        .response-item {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
+        /* 日期选择器弹窗 */
+        .date-picker-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 2000;
+        }
+        .date-picker-modal.show { display: block; }
+        .date-picker-container {
+            position: absolute;
+            background: white;
             padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+        .date-picker-panels { display: flex; gap: 20px; }
+        .date-picker-panel { flex: 1; min-width: 224px; }
+        .date-picker-panel-title { font-size: 12px; color: #999; margin-bottom: 6px; }
+        .date-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .date-picker-header button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+        }
+        .date-picker-header button:hover { color: #409eff; }
+        .date-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .date-picker-day {
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+        .date-picker-day.other-month { color: #ccc; }
+        .date-picker-day.today { background: #f0f9ff; color: #409eff; }
+        .date-picker-day:hover { background: #f0f9ff; }
+        .date-picker-day.selected { background: #409eff; color: white; }
+        .date-picker-day.in-range { background: #ecf5ff; }
+        .date-picker-week {
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+        }
+        .date-picker-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        /* 响应列表 - 极简风格 */
+        .response-list { margin-top: 10px; }
+        .response-item {
+            background: #f5f7fa;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .response-item.active { border-color: #667eea; background: #f0f4ff; }
-        .response-info h4 { color: #333; margin-bottom: 5px; }
+        .response-item.active { border-color: #409eff; background: #ecf5ff; }
+        .response-info h4 { color: #333; margin-bottom: 3px; font-size: 13px; }
         .response-info p { color: #666; font-size: 12px; }
         
-        /* 滚动条美化 */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #5a67d8 0%, #6a4292 100%); }
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c0c4cc; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #909399; }
     </style>
 </head>
 <body>
@@ -298,8 +443,7 @@
         <!-- 左侧侧边栏 -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>🚀 Mock Server</h2>
-                <p>目录树导航</p>
+                <h2>Mock Server</h2>
             </div>
             <div class="tree-container" id="treeContainer">
                 <!-- 目录树会动态渲染在这里 -->
@@ -311,10 +455,10 @@
             <!-- Tab导航 -->
             <div class="tab-nav">
                 <button class="tab-btn active" onclick="switchTab('configs')">
-                    <span class="tab-icon">⚙️</span>Mock配置
+                    Mock配置
                 </button>
                 <button class="tab-btn" onclick="switchTab('logs')">
-                    <span class="tab-icon">📋</span>请求日志
+                    请求日志
                 </button>
             </div>
             
@@ -322,9 +466,9 @@
             <div class="tab-content active" id="configsTab">
                 <div class="card">
                     <div class="card-header">
-                        <h2 id="currentGroupTitle">📁 全部配置</h2>
+                        <h2 id="currentGroupTitle">全部配置</h2>
                         <button class="btn btn-success" onclick="openAddConfigModal()">
-                            ➕ 添加配置
+                            添加配置
                         </button>
                     </div>
                     
@@ -354,16 +498,14 @@
                             </div>
                             <div class="filter-item">
                                 <label>创建时间</label>
-                                <div class="date-range-container">
-                                    <input type="date" id="filterDateStart" placeholder="开始日期">
-                                    <span class="date-separator">~</span>
-                                    <input type="date" id="filterDateEnd" placeholder="结束日期">
+                                <div class="date-range-input" id="configDateRange" onclick="openDatePicker('config', event)">
+                                    <span id="configDateRangeText">选择日期范围</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="filter-btn-row">
-                            <button class="btn btn-secondary" onclick="resetFilters()">重置</button>
-                            <button class="btn btn-primary" onclick="applyFilters()">筛选</button>
+                            <div class="filter-buttons">
+                                <button class="btn btn-secondary" onclick="resetFilters()">重置</button>
+                                <button class="btn btn-primary" onclick="applyFilters()">筛选</button>
+                            </div>
                         </div>
                     </div>
                     
@@ -412,16 +554,14 @@
                             </div>
                             <div class="filter-item">
                                 <label>时间范围</label>
-                                <div class="date-range-container">
-                                    <input type="date" id="filterLogDateStart" placeholder="开始日期">
-                                    <span class="date-separator">~</span>
-                                    <input type="date" id="filterLogDateEnd" placeholder="结束日期">
+                                <div class="date-range-input" id="logDateRange" onclick="openDatePicker('log', event)">
+                                    <span id="logDateRangeText">选择日期范围</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="filter-btn-row">
-                            <button class="btn btn-secondary" onclick="resetLogFilters()">重置</button>
-                            <button class="btn btn-primary" onclick="applyLogFilters()">筛选</button>
+                            <div class="filter-buttons">
+                                <button class="btn btn-secondary" onclick="resetLogFilters()">重置</button>
+                                <button class="btn btn-primary" onclick="applyLogFilters()">筛选</button>
+                            </div>
                         </div>
                     </div>
                     
@@ -465,7 +605,14 @@
                     </div>
                     <div class="form-group">
                         <label>所属目录</label>
-                        <select id="addGroupId"></select>
+                        <div class="group-select">
+                            <input type="hidden" id="addGroupId" value="0">
+                            <div class="group-select-display" onclick="toggleGroupDropdown('add')">
+                                <span id="addGroupDisplay">📁 根目录</span>
+                                <span class="group-select-arrow">▾</span>
+                            </div>
+                            <div class="group-select-dropdown" id="addGroupDropdown"></div>
+                        </div>
                     </div>
                 </div>
                 
@@ -527,7 +674,14 @@
                     </div>
                     <div class="form-group">
                         <label>所属目录</label>
-                        <select id="editGroupId"></select>
+                        <div class="group-select">
+                            <input type="hidden" id="editGroupId" value="0">
+                            <div class="group-select-display" onclick="toggleGroupDropdown('edit')">
+                                <span id="editGroupDisplay">📁 根目录</span>
+                                <span class="group-select-arrow">▾</span>
+                            </div>
+                            <div class="group-select-dropdown" id="editGroupDropdown"></div>
+                        </div>
                     </div>
                 </div>
                 
@@ -626,7 +780,7 @@
             
             <form id="groupForm">
                 <input type="hidden" id="groupParentId" value="0">
-                <input type="hidden" id="editGroupId" value="">
+                <input type="hidden" id="groupEditId" value="">
                 
                 <div class="form-group">
                     <label>目录名称<span class="required">*</span></label>
@@ -663,11 +817,52 @@
     <!-- Toast提示 -->
     <div class="toast" id="toast"></div>
     
+    <!-- 日期选择器弹窗 -->
+    <div class="date-picker-modal" id="datePickerModal" onclick="if(event.target===this)closeDatePicker()">
+        <div class="date-picker-container">
+            <div class="date-picker-panels">
+                <div class="date-picker-panel">
+                    <div class="date-picker-panel-title">开始日期</div>
+                    <div class="date-picker-header">
+                        <button onclick="datePickerPrevMonth('start')">&#8249;</button>
+                        <span id="datePickerStartTitle">2024年10月</span>
+                        <button onclick="datePickerNextMonth('start')">&#8250;</button>
+                    </div>
+                    <div class="date-picker-grid" id="datePickerStartGrid"></div>
+                </div>
+                <div class="date-picker-panel">
+                    <div class="date-picker-panel-title">结束日期</div>
+                    <div class="date-picker-header">
+                        <button onclick="datePickerPrevMonth('end')">&#8249;</button>
+                        <span id="datePickerEndTitle">2024年11月</span>
+                        <button onclick="datePickerNextMonth('end')">&#8250;</button>
+                    </div>
+                    <div class="date-picker-grid" id="datePickerEndGrid"></div>
+                </div>
+            </div>
+            <div class="date-picker-footer">
+                <button class="btn btn-secondary" onclick="closeDatePicker()">取消</button>
+                <button class="btn btn-primary" onclick="confirmDatePicker()">确定</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
+        // ==================== 日期选择器全局变量 ====================
+        let datePickerMode = 'config'; // config或log
+        let datePickerStartYear = 2024;
+        let datePickerStartMonth = 10;
+        let datePickerEndYear = 2024;
+        let datePickerEndMonth = 11;
+        let datePickerStart = null;
+        let datePickerEnd = null;
+        
         // ==================== 全局变量 ====================
         let currentTab = 'configs';
         let currentGroupId = 0;
         let groups = [];
+        let groupTree = []; // 目录树形结构
+        let groupDropdownExpanded = {}; // 下拉框展开状态
         let tempResponses = [];
         let currentEditConfigId = null;
         let responseMode = 'add'; // add或edit
@@ -766,13 +961,10 @@
             
             // 根节点
             let html = `
-                <div class="tree-item ${currentGroupId === 0 ? 'active' : ''}" onclick="selectGroup(0)">
-                    <span class="tree-expand"></span>
-                    <span class="icon">🏠</span>
+                <div class="tree-item ${currentGroupId === 0 ? 'active' : ''}" onclick="selectGroup(0)" style="padding-left: 8px;">
+                    <span class="tree-expand invisible"></span>
                     <span class="name">全部配置</span>
-                    <div class="tree-actions">
-                        <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); openAddGroupModal(0)">+</button>
-                    </div>
+                    <span class="tree-menu" onclick="event.stopPropagation(); showTreeMenu(event, 0)">⋮</span>
                 </div>
             `;
             
@@ -805,15 +997,10 @@
                 const isExpanded = treeExpandedState[g.id] === true;
                 
                 html += `
-                    <div class="tree-item ${currentGroupId === g.id ? 'active' : ''}" onclick="selectGroup(${g.id})" style="padding-left: ${10 + level * 15}px;">
+                    <div class="tree-item ${currentGroupId === g.id ? 'active' : ''}" onclick="selectGroup(${g.id})" style="padding-left: ${8 + level * 12}px;">
                         <span class="tree-expand ${hasKids ? '' : 'invisible'}" onclick="event.stopPropagation(); toggleExpand(${g.id})">${isExpanded ? '▼' : '▶'}</span>
-                        <span class="icon">${g.icon}</span>
                         <span class="name">${g.name}</span>
-                        <div class="tree-actions">
-                            <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); openAddGroupModal(${g.id})" title="添加子目录">+</button>
-                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); openEditGroupModal(${g.id})" title="编辑">✎</button>
-                            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteGroup(${g.id})" title="删除">🗑</button>
-                        </div>
+                        <span class="tree-menu" onclick="event.stopPropagation(); showTreeMenu(event, ${g.id})">⋮</span>
                     </div>
                 `;
                 
@@ -840,11 +1027,55 @@
         function updateGroupTitle() {
             const title = document.getElementById('currentGroupTitle');
             if (currentGroupId === 0) {
-                title.textContent = '📁 全部配置';
+                title.textContent = '全部配置';
             } else {
                 const group = findGroup(groups, currentGroupId);
-                title.textContent = `${group ? (group.icon || '📁') : '📁'} ${group ? group.name : '未知目录'}`;
+                title.textContent = `${group ? group.name : '未知目录'}`;
             }
+        }
+        
+        // 三点菜单
+        let currentMenuGroupId = null;
+        
+        function showTreeMenu(event, groupId) {
+            event.stopPropagation();
+            
+            // 关闭其他菜单
+            document.querySelectorAll('.tree-menu-dropdown').forEach(m => m.remove());
+            
+            currentMenuGroupId = groupId;
+            
+            // 创建菜单
+            const menu = document.createElement('div');
+            menu.className = 'tree-menu-dropdown show';
+            menu.innerHTML = `
+                <div class="tree-menu-item" onclick="openAddGroupModal(${groupId}); hideTreeMenu();">添加子目录</div>
+                <div class="tree-menu-item" onclick="openEditGroupModal(${groupId}); hideTreeMenu();">编辑</div>
+                <div class="tree-menu-item" onclick="deleteGroup(${groupId}); hideTreeMenu();">删除</div>
+            `;
+            
+            // 定位
+            const menuBtn = event.target;
+            const rect = menuBtn.getBoundingClientRect();
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarRect = sidebar.getBoundingClientRect();
+            
+            menu.style.position = 'fixed';
+            menu.style.left = (rect.left - 80) + 'px';
+            menu.style.top = (rect.bottom + 2) + 'px';
+            
+            document.body.appendChild(menu);
+            
+            // 点击其他地方关闭菜单
+            setTimeout(() => {
+                document.addEventListener('click', hideTreeMenu);
+            }, 0);
+        }
+        
+        function hideTreeMenu() {
+            document.querySelectorAll('.tree-menu-dropdown').forEach(m => m.remove());
+            document.removeEventListener('click', hideTreeMenu);
+            currentMenuGroupId = null;
         }
         
         function findGroup(items, id) {
@@ -866,17 +1097,108 @@
         }
 
         function populateGroupSelects() {
-            // 填充目录选择下拉框
-            const selects = ['addGroupId', 'editGroupId'];
-            selects.forEach(id => {
-                const select = document.getElementById(id);
-                if (!select) return;
-                select.innerHTML = '<option value="0">根目录</option>';
-                groups.forEach(group => {
-                    select.innerHTML += `<option value="${group.id}">${group.icon || '📁'} ${group.name}</option>`;
-                });
+            // 构建目录树
+            const map = {};
+            const roots = [];
+            groups.forEach(i => { map[i.id] = { ...i, children: [] }; });
+            groups.forEach(i => {
+                if (i.parent_id === 0) {
+                    roots.push(map[i.id]);
+                } else if (map[i.parent_id]) {
+                    map[i.parent_id].children.push(map[i.id]);
+                }
             });
+            groupTree = roots;
+            
+            updateGroupDisplay('add');
+            updateGroupDisplay('edit');
+            closeAllGroupDropdowns();
         }
+        
+        function toggleGroupDropdown(kind) {
+            const dropdown = document.getElementById(kind + 'GroupDropdown');
+            if (!dropdown) return;
+            const isOpen = dropdown.classList.contains('show');
+            closeAllGroupDropdowns();
+            if (!isOpen) {
+                renderGroupDropdown(kind);
+                dropdown.classList.add('show');
+            }
+        }
+        
+        function closeGroupDropdown(kind) {
+            const dropdown = document.getElementById(kind + 'GroupDropdown');
+            if (dropdown) dropdown.classList.remove('show');
+        }
+        
+        function closeAllGroupDropdowns() {
+            closeGroupDropdown('add');
+            closeGroupDropdown('edit');
+        }
+        
+        function renderGroupDropdown(kind) {
+            const dropdown = document.getElementById(kind + 'GroupDropdown');
+            if (!dropdown) return;
+            const currentValue = parseInt(document.getElementById(kind + 'GroupId').value) || 0;
+            let html = '';
+            html += `<div class="group-opt-row ${currentValue === 0 ? 'selected' : ''}">
+                <span class="group-opt-toggle invisible">▸</span>
+                <span class="group-opt-label" onclick="selectGroupOption(0, '${kind}')">📁 根目录</span>
+            </div>`;
+            html += buildGroupOptionsHtml(groupTree, 0, kind, currentValue);
+            dropdown.innerHTML = html;
+        }
+        
+        function buildGroupOptionsHtml(items, level, kind, currentValue) {
+            let html = '';
+            for (let g of items) {
+                const hasKids = g.children && g.children.length > 0;
+                const isExpanded = groupDropdownExpanded[g.id] === true;
+                html += `<div class="group-opt-row ${currentValue === g.id ? 'selected' : ''}" style="padding-left: ${8 + level * 16}px;">
+                    <span class="group-opt-toggle ${hasKids ? '' : 'invisible'}" onclick="event.stopPropagation(); toggleGroupNode(${g.id}, '${kind}')">${isExpanded ? '▾' : '▸'}</span>
+                    <span class="group-opt-label" onclick="selectGroupOption(${g.id}, '${kind}')">📁 ${g.name}</span>
+                </div>`;
+                if (hasKids && isExpanded) {
+                    html += buildGroupOptionsHtml(g.children, level + 1, kind, currentValue);
+                }
+            }
+            return html;
+        }
+        
+        function toggleGroupNode(groupId, kind) {
+            groupDropdownExpanded[groupId] = !groupDropdownExpanded[groupId];
+            renderGroupDropdown(kind);
+        }
+        
+        function selectGroupOption(value, kind) {
+            document.getElementById(kind + 'GroupId').value = value;
+            updateGroupDisplay(kind);
+            closeAllGroupDropdowns();
+        }
+        
+        function setGroupSelectValue(kind, value) {
+            document.getElementById(kind + 'GroupId').value = value;
+            updateGroupDisplay(kind);
+        }
+        
+        function updateGroupDisplay(kind) {
+            const input = document.getElementById(kind + 'GroupId');
+            const display = document.getElementById(kind + 'GroupDisplay');
+            if (!input || !display) return;
+            const value = parseInt(input.value) || 0;
+            if (value === 0) {
+                display.textContent = '📁 根目录';
+                return;
+            }
+            const group = findGroup(groups, value);
+            display.textContent = group ? ('📁 ' + group.name) : ('📁 #' + value);
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.group-select')) {
+                closeAllGroupDropdowns();
+            }
+        });
         
         // ==================== 配置列表 ====================
         async function loadConfigs() {
@@ -984,7 +1306,7 @@
             }];
             renderAddResponseList();
             populateGroupSelects();
-            document.getElementById('addGroupId').value = currentGroupId;
+            setGroupSelectValue('add', currentGroupId);
         }
         
         function closeAddConfigModal() {
@@ -1066,7 +1388,7 @@
                 document.getElementById('editUrlMatchType').value = config.url_match_type || 'exact';
                 
                 populateGroupSelects();
-                document.getElementById('editGroupId').value = config.group_id || 0;
+                setGroupSelectValue('edit', config.group_id || 0);
                 
                 renderEditResponseList();
                 document.getElementById('editConfigModal').classList.add('show');
@@ -1198,7 +1520,7 @@
             document.getElementById('groupModalTitle').textContent = '📁 新建目录';
             document.getElementById('groupForm').reset();
             document.getElementById('groupParentId').value = parentId;
-            document.getElementById('editGroupId').value = '';
+            document.getElementById('groupEditId').value = '';
             document.getElementById('groupModal').classList.add('show');
         }
         
@@ -1209,7 +1531,7 @@
                 
                 document.getElementById('groupModalTitle').textContent = '✏️ 编辑目录';
                 document.getElementById('groupParentId').value = group.parent_id;
-                document.getElementById('editGroupId').value = groupId;
+                document.getElementById('groupEditId').value = groupId;
                 document.getElementById('groupName').value = group.name;
                 document.getElementById('groupIcon').value = group.icon;
                 document.getElementById('groupColor').value = group.color;
@@ -1227,7 +1549,7 @@
         async function handleSaveGroup(e) {
             e.preventDefault();
             
-            const editGroupId = document.getElementById('editGroupId').value;
+            const editGroupId = document.getElementById('groupEditId').value;
             const parentId = parseInt(document.getElementById('groupParentId').value);
             const data = {
                 name: document.getElementById('groupName').value,
@@ -1509,6 +1831,219 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2500);
+        }
+        
+        // ==================== 日期选择器 ====================
+        function openDatePicker(mode, evt) {
+            datePickerMode = mode;
+            const current = (mode === 'config') ? filters : logFilters;
+            datePickerStart = current.date_start || null;
+            datePickerEnd = current.date_end || null;
+            
+            const now = new Date();
+            datePickerStartYear = now.getFullYear();
+            datePickerStartMonth = now.getMonth();
+            datePickerEndYear = datePickerStartYear;
+            datePickerEndMonth = datePickerStartMonth + 1;
+            if (datePickerEndMonth > 11) {
+                datePickerEndMonth = 0;
+                datePickerEndYear++;
+            }
+            
+            renderDatePicker();
+            document.getElementById('datePickerModal').classList.add('show');
+            if (evt && evt.currentTarget) {
+                positionDatePicker(evt.currentTarget);
+            }
+        }
+        
+        function positionDatePicker(anchor) {
+            const container = document.querySelector('#datePickerModal .date-picker-container');
+            const rect = anchor.getBoundingClientRect();
+            const gap = 4;
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            
+            let left = rect.left;
+            if (left + containerWidth > window.innerWidth) {
+                left = rect.right - containerWidth;
+            }
+            if (left < 8) left = 8;
+            
+            let top = rect.bottom + gap;
+            if (top + containerHeight > window.innerHeight) {
+                top = rect.top - containerHeight - gap;
+            }
+            if (top < 8) top = 8;
+            
+            container.style.left = left + 'px';
+            container.style.top = top + 'px';
+        }
+        
+        function closeDatePicker() {
+            document.getElementById('datePickerModal').classList.remove('show');
+        }
+        
+        function renderDatePicker() {
+            renderMonth('datePickerStartGrid', 'datePickerStartTitle', datePickerStartYear, datePickerStartMonth);
+            renderMonth('datePickerEndGrid', 'datePickerEndTitle', datePickerEndYear, datePickerEndMonth);
+        }
+        
+        function renderMonth(gridId, titleId, year, month) {
+            const title = document.getElementById(titleId);
+            title.textContent = `${year}年${month + 1}月`;
+            
+            const grid = document.getElementById(gridId);
+            let html = '';
+            
+            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+            weekDays.forEach(day => {
+                html += `<div class="date-picker-week">${day}</div>`;
+            });
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dateStr = getDateStr(year, month - 1, day);
+                html += `<div class="date-picker-day other-month" data-date="${dateStr}" onclick="selectDate('${dateStr}')">${day}</div>`;
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = getDateStr(year, month, day);
+                let classes = 'date-picker-day';
+                
+                if (dateStr === todayStr) classes += ' today';
+                if (datePickerStart === dateStr) classes += ' selected';
+                if (datePickerEnd === dateStr) classes += ' selected';
+                if (datePickerStart && datePickerEnd && dateStr > datePickerStart && dateStr < datePickerEnd) classes += ' in-range';
+                
+                html += `<div class="${classes}" data-date="${dateStr}" onclick="selectDate('${dateStr}')">${day}</div>`;
+            }
+            
+            const totalDays = firstDay + daysInMonth;
+            const remainingDays = 42 - totalDays;
+            for (let day = 1; day <= remainingDays; day++) {
+                const dateStr = getDateStr(year, month + 1, day);
+                html += `<div class="date-picker-day other-month" data-date="${dateStr}" onclick="selectDate('${dateStr}')">${day}</div>`;
+            }
+            
+            grid.innerHTML = html;
+        }
+        
+        function getDateStr(year, month, day) {
+            if (month < 0) {
+                year--;
+                month = 11;
+            }
+            if (month > 11) {
+                year++;
+                month = 0;
+            }
+            return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+        
+        function datePickerPrevMonth(panel) {
+            if (panel === 'start') {
+                datePickerStartMonth--;
+                if (datePickerStartMonth < 0) {
+                    datePickerStartMonth = 11;
+                    datePickerStartYear--;
+                }
+            } else {
+                datePickerEndMonth--;
+                if (datePickerEndMonth < 0) {
+                    datePickerEndMonth = 11;
+                    datePickerEndYear--;
+                }
+            }
+            renderDatePicker();
+        }
+        
+        function datePickerNextMonth(panel) {
+            if (panel === 'start') {
+                datePickerStartMonth++;
+                if (datePickerStartMonth > 11) {
+                    datePickerStartMonth = 0;
+                    datePickerStartYear++;
+                }
+            } else {
+                datePickerEndMonth++;
+                if (datePickerEndMonth > 11) {
+                    datePickerEndMonth = 0;
+                    datePickerEndYear++;
+                }
+            }
+            renderDatePicker();
+        }
+        
+        function selectDate(dateStr) {
+            if (!datePickerStart || (datePickerStart && datePickerEnd)) {
+                datePickerStart = dateStr;
+                datePickerEnd = null;
+            } else {
+                if (dateStr < datePickerStart) {
+                    datePickerEnd = datePickerStart;
+                    datePickerStart = dateStr;
+                } else {
+                    datePickerEnd = dateStr;
+                }
+                confirmDatePicker();
+                return;
+            }
+            renderDatePicker();
+        }
+        
+        function confirmDatePicker() {
+            if (datePickerStart && datePickerEnd) {
+                if (datePickerMode === 'config') {
+                    filters.date_start = datePickerStart;
+                    filters.date_end = datePickerEnd;
+                    document.getElementById('configDateRangeText').textContent = `${datePickerStart} ~ ${datePickerEnd}`;
+                } else {
+                    logFilters.date_start = datePickerStart;
+                    logFilters.date_end = datePickerEnd;
+                    document.getElementById('logDateRangeText').textContent = `${datePickerStart} ~ ${datePickerEnd}`;
+                }
+            } else if (datePickerStart) {
+                if (datePickerMode === 'config') {
+                    filters.date_start = datePickerStart;
+                    filters.date_end = datePickerStart;
+                    document.getElementById('configDateRangeText').textContent = datePickerStart;
+                } else {
+                    logFilters.date_start = datePickerStart;
+                    logFilters.date_end = datePickerStart;
+                    document.getElementById('logDateRangeText').textContent = datePickerStart;
+                }
+            }
+            closeDatePicker();
+        }
+        
+        // 修改重置过滤器函数，清空日期显示
+        function resetFilters() {
+            document.getElementById('filterName').value = '';
+            document.getElementById('filterMethod').value = '';
+            document.getElementById('filterUrl').value = '';
+            filters = { name: '', method: '', url: '', date_start: '', date_end: '' };
+            document.getElementById('configDateRangeText').textContent = '选择日期范围';
+            updateFilterClearBtn();
+            configPage = 1;
+            loadConfigs();
+        }
+        
+        function resetLogFilters() {
+            document.getElementById('filterLogUrl').value = '';
+            document.getElementById('filterLogMockUrl').value = '';
+            logFilters = { url: '', mock_url: '', date_start: '', date_end: '' };
+            document.getElementById('logDateRangeText').textContent = '选择日期范围';
+            updateFilterClearBtn();
+            logPage = 1;
+            loadLogs();
         }
     </script>
 </body>
