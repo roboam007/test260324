@@ -23,10 +23,31 @@ python init_sample_data.py
 ```
 
 ### 3. 启动服务
+
+#### 开发环境
 ```bash
 python run.py
 ```
 服务默认运行在 http://localhost:5000
+
+#### 生产环境（Windows）
+```bash
+python run_production.py
+```
+
+生产环境支持自定义参数：
+```bash
+# 自定义端口和线程数
+python run_production.py --port 8080 --threads 8
+
+# 绑定到特定IP
+python run_production.py --host 192.168.1.100 --port 5000
+```
+
+**生产环境优势：**
+- ✅ 高性能（多线程处理）
+- ✅ 生产级稳定性
+- ✅ 无开发模式警告
 
 ## API说明
 
